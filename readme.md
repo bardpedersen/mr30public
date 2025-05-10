@@ -30,6 +30,11 @@ To test the quality of the stiched point cloud:
 rosrun mr-30 pointcloud_evaluator
 ```
 
+Turn sdf to stl.
+```bash
+./sdf2stl.py robot_model.sdf output.stl
+```
+
 ## Folder structure
 
 abb_controll: This package is used to control the ABB robot. from gradientnbv.
