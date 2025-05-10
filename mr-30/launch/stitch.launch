@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<launch>
+
+    <param name="use_sim_time" value="false"/>
+    <arg name="number_of_frames" default="7"/>
+    <arg name="point_cloud_topic" default="/camera/depth/color/points_pose"/> <!-- for zivid: "/zivid_camera/points/xyz"-->
+    
+    <arg name="bag_file" default="rand"/>
+    <arg name="path" default="$(find mr-30)/../../data/2504_l515_box"/>
+    <arg name="bag_path" default="$(arg path)/rosbag/$(arg bag_file).bag"/>
+    <arg name="output_path" default="$(arg path)/pcd/$(arg bag_file)$(arg number_of_frames)"/>
+    <arg name="output_path_image" default="$(arg path)/noise_images/$(arg bag_file)"/>
+
+    <!-- Launch the node with the argument -->
+    <node name="pointcloud_stitcher" pkg="mr-30" type="stitch" output="screen" required="true">
+
+        <!--             -->
+        <!-- read rosbag -->
+        <!--             -->
+
+        <!-- Rosbag param -->
+        <param name="bag_path" value="$(arg bag_path)"/>
+        <param name="number_of_frames" value="$(arg number_of_frames)"/>
+        <param name="point_cloud_topic" value="$(arg point_cloud_topic)"/>
+
+        <!-- Output path -->
+        <param name="output_path" value="$(arg output_path)"/>
+        <param name="output_path_image" value="$(arg output_path_image)"/>
+
+        <!-- camera noise -->
+        <param name="camera_noise" value="false"/>
+        <param name="camera_mean" value="0.0"/>
+        <param name="camera_base_stddev" value="-0.0023"/> <!-- from <2% at 2m from: https://www.intelrealsense.com/compare-depth-cameras/ -->
+        <param name="camera_scale_factor" value="0.011"/>
+
+        <param name="use_perlin" value="false"/>
+        <param name="perline_scale" value="5"/> <!-- lower number more smooth noise -->
+        <param name="perlin_amplitude" value="0.01"/> <!-- higher number higher peaks -->
+        <param name="perlin_nr_layers" value="4"/>
+
+        <!-- robot noise -->
+        <param name="robot_noise" value="false"/>
+        <param name="robot_mean" value="0.0"/>
+        <param name="robot_tran_stddev" value="0.0001"/> <!-- from data sheet: https://www.universal-robots.com/media/50880/ur10_bz.pdf --> 
+        <param name="robot_rot_stddev" value="0.0001"/>
+        
+        <!--             -->
+        <!-- Stitcher    -->
+        <!--             -->
+
+        <!-- Use pose to camera from /tf will be false if there is no transform -->
+        <param name="use_pose" value="false"/>
+
+        <param name="use_between_factor" value="true"/>
+
+        <!-- If Optimizing shall print all the itterations -->  
+        <param name="verbose" value="true"/>
+        
+        <!-- Pointcloud filtering -->
+        <param name="filter_far_points" value="true"/>
+        <param name="far_point_threshold" value="0.9"/>
+        <param name="near_point_threshold" value="0"/>
+
+        <!-- ICP sequential -->
+        <param name="icp_sequential" value="true"/>
+
+        <!-- Standard ICP params -->
+        <param name="icp_type" value="1"/> <!-- 0 = no ICP, 1=GICP, 2=color GICP, rest = ICP --> 
+        <param name="max_correspondence_distance" value="0.05"/>
+        <param name="num_threads" value="9"/>
+        
+        <!-- GICP params -->
+        <param name="k_neighbors" value="10"/>
+        <param name="randomsampling_rate" value="0.15"/>
+
+        <!-- visualization -->
+        <param name="enable_visualizer" value="false"/>
+        <param name="point_size" value="2.0"/>
+
+    </node>
+
+</launch>
+

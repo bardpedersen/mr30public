@@ -1,0 +1,8 @@
+<launch>
+    <!-- Launch the RealSense camera node with point cloud enabled, realworld -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="filters" value="pointcloud"/>
+    </include>
+
+    <node name="capture_pointcloud" pkg="mr-30" type="capture_pointcloud.py" output="screen"/>
+</launch>

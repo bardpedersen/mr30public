@@ -1,0 +1,14 @@
+<launch>
+
+  <param name="use_sim_time" value="false"/>
+
+  <!-- task manager -->
+  <param name="/agent/frames/world_frame_id" type="string" value="world" />
+  <param name="/agent/frames/camera_frame_id" type="string" value="camera_link" />
+
+  <arg name="nbv_movement_type" default="sample_nbv"/> <!-- random, sample_nbv, grid, frontier_nbv, grad_nbv, grad_nbv_pso, grad_nbv_subop --> 
+  <param name="/viewpoint_planning/method" type="string" value="$(arg nbv_movement_type)"/>
+  <param name="/viewpoint_planning/log_dir" type="string" value="/home/ok/mr30_ws/data/logs/"/>
+
+  <node name="viewpoint_planning" pkg="viewpoint_planning" type="viewpoint_planning_node.py" output="screen" />
+</launch>

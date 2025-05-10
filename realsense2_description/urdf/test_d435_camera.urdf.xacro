@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot name="realsense2_camera" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435_ga.urdf.xacro" />
+    
+  <!-- Base link with proper inertial properties -->
+  <link name="base_link"/>
+
+  <gazebo>
+    <static>true</static>
+  </gazebo>
+
+  <!-- Attach camera to the end of our joint chain -->
+  <xacro:sensor_d435_ga name="camera" topics_ns="camera" parent="base_link" publish_pointcloud="true">
+    <origin xyz="0 -0.018 -0.037" rpy="0 0 0" />
+  </xacro:sensor_d435_ga>
+
+<!--ok@ok:~/mr30_ws$ rosrun tf tf_echo camera_bottom_screw_frame camera_color_frame
+At time 0.000
+- Translation: [0.000, 0.018, 0.037]
+- Rotation: in Quaternion [0.000, 0.000, 0.000, 1.000]
+            in RPY (radian) [0.000, -0.000, 0.000]
+            in RPY (degree) [0.000, -0.000, 0.000]
+-->
+</robot>

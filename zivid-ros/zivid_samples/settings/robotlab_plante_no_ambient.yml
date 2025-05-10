@@ -1,0 +1,115 @@
+__version__: 27
+Settings:
+  Acquisitions:
+    - Acquisition:
+        Aperture: 5.66
+        Brightness: 1.25
+        ExposureTime: 10000
+        Gain: 1
+    - Acquisition:
+        Aperture: 5.66
+        Brightness: 2.5
+        ExposureTime: 91667
+        Gain: 1
+    - Acquisition:
+        Aperture: 4
+        Brightness: 2.5
+        ExposureTime: 20000
+        Gain: 1
+    - Acquisition:
+        Aperture: 4
+        Brightness: 2.5
+        ExposureTime: 2500
+        Gain: 1
+  Color:
+    __version__: 7
+    Settings2D:
+      Acquisitions:
+        - Acquisition:
+            Aperture: 5.66
+            Brightness: 2.5
+            ExposureTime: 2000
+            Gain: 2
+        - Acquisition:
+            Aperture: 5.66
+            Brightness: 2.5
+            ExposureTime: 10000
+            Gain: 2
+      Processing:
+        Color:
+          Balance:
+            Blue: 1
+            Green: 1
+            Red: 1
+          Experimental:
+            Mode: automatic
+          Gamma: 1
+      Sampling:
+        Color: rgb
+        Pixel: by2x2
+  Diagnostics:
+    Enabled: no
+  Engine: stripe
+  Processing:
+    Color:
+      Balance:
+        Blue: __not_set__
+        Green: __not_set__
+        Red: __not_set__
+      Experimental:
+        Mode: __not_set__
+      Gamma: __not_set__
+    Filters:
+      Cluster:
+        Removal:
+          Enabled: yes
+          MaxNeighborDistance: 10
+          MinArea: 80
+      Experimental:
+        ContrastDistortion:
+          Correction:
+            Enabled: yes
+            Strength: 0.3
+          Removal:
+            Enabled: yes
+            Threshold: 0.4
+      Hole:
+        Repair:
+          Enabled: yes
+          HoleSize: 0.1
+          Strictness: 4
+      Noise:
+        Removal:
+          Enabled: yes
+          Threshold: 2
+        Repair:
+          Enabled: yes
+        Suppression:
+          Enabled: yes
+      Outlier:
+        Removal:
+          Enabled: yes
+          Threshold: 10
+      Reflection:
+        Removal:
+          Enabled: no
+          Mode: local
+      Smoothing:
+        Gaussian:
+          Enabled: yes
+          Sigma: 1.5
+    Resampling:
+      Mode: disabled
+  RegionOfInterest:
+    Box:
+      Enabled: no
+      Extents: [0, 5000]
+      PointA: [985.977844, 1361.33093, 5000]
+      PointB: [-1074.86975, -832.04541, 5000]
+      PointO: [-1074.86975, 1361.33093, 5000]
+    Depth:
+      Enabled: yes
+      Range: [500, 2000]
+  Sampling:
+    Color: __not_set__
+    Pixel: by2x2

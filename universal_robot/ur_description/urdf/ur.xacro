@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg robot_model)_robot">
+
+   <xacro:property name="PI" value="3.1415926535897931" />
+   <!-- import main macro -->
+   <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>
+
+   <!-- parameters -->
+   <xacro:arg name="joint_limit_params" default=""/>
+   <xacro:arg name="kinematics_params" default=""/>
+   <xacro:arg name="physical_params" default=""/>
+   <xacro:arg name="visual_params" default=""/>
+   <!-- legal values:
+         - hardware_interface/PositionJointInterface
+         - hardware_interface/VelocityJointInterface
+         - hardware_interface/EffortJointInterface
+   -->
+   <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface"/>
+   <xacro:arg name="safety_limits" default="false"/>
+   <xacro:arg name="safety_pos_margin" default="0.15"/>
+   <xacro:arg name="safety_k_position" default="20"/>
+
+   <!-- arm -->
+   <xacro:ur_robot
+     prefix=""
+     joint_limits_parameters_file="$(arg joint_limit_params)"
+     kinematics_parameters_file="$(arg kinematics_params)"
+     physical_parameters_file="$(arg physical_params)"
+     visual_parameters_file="$(arg visual_params)"
+     transmission_hw_interface="$(arg transmission_hw_interface)"
+     safety_limits="$(arg safety_limits)"
+     safety_pos_margin="$(arg safety_pos_margin)"
+     safety_k_position="$(arg safety_k_position)"/>
+
+   <!-- world frame link to base_link -->
+   <link name="world"/>
+   <joint name="world_joint" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 0.03" rpy="0 0 -${PI/2}"/>
+   </joint>
+
+   <!-- Uncomment below for d435 -->
+   <!--xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+   <xacro:sensor_d435 name="camera" parent="tool0" use_nominal_extrinsics="true">
+      <origin xyz="-0.00145 0.0523 0.0385" rpy="-${PI/2} -${PI/2} -${PI}" />
+   </xacro:sensor_d435>
+
+   <xacro:include filename="$(find realsense2_description)/urdf/_ur_mount2.urdf.xacro" />
+   <xacro:ur_mount2 name="ur_mount" parent="tool0">
+      <origin xyz="-0.008 0.005 0.017" rpy="-${PI} 0 -${PI/2}"/>
+   </xacro:ur_mount2-->
+
+   <!-- Uncomment below for l515 -->
+   <xacro:include filename="$(find realsense2_description)/urdf/_l515.urdf.xacro" />
+   <xacro:sensor_l515 name="camera" parent="tool0" use_nominal_extrinsics="true">
+      <origin xyz="-0.00145 0.0523 0.0385" rpy="-${PI/2} -${PI/2} -${PI}" />
+   </xacro:sensor_l515>
+
+   <xacro:include filename="$(find realsense2_description)/urdf/_ur_mount2.urdf.xacro" />
+   <xacro:ur_mount2 name="ur_mount" parent="tool0">
+      <origin xyz="-0.008 0.005 0.017" rpy="-${PI} 0 -${PI/2}"/>
+   </xacro:ur_mount2>
+
+   <!-- Uncomment below for zivid -->
+   <!--xacro:include filename="$(find realsense2_description)/urdf/_ur_mount_zivid.urdf.xacro" />
+   <xacro:ur_mount_zivid name="ur_mount" parent="tool0">
+      <origin xyz="-0.008 0.005 0.017" rpy="-${PI} 0 -${PI/2}"/>
+   </xacro:ur_mount_zivid>
+
+   <xacro:include filename="$(find zivid_description)/urdf/macros/zivid_two_camera.xacro"/>
+   <xacro:zivid_two_camera prefix="zivid"/>
+
+   <joint name="zivid_joint" type="fixed">
+      <parent link="tool0"/>
+      <child link="zivid_link"/>
+      <origin xyz="-0.00145 0.0625 0.022" rpy="-${PI/2} -${PI/2} 0" />
+   </joint-->
+
+   <!-- Extra safety boundries -->
+   <!--link name="zivid_box">
+   <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.15 0.2 0.07"/>
+      </geometry>
+      <material name="black">
+         <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+   </visual>
+   <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.15 0.2 0.07"/>
+      </geometry>
+   </collision>
+   </link-->
+
+   <!-- Cable box for Zivid zivid -->
+   <!--link name="zivid_cable_box1">
+   <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.09 0.03 0.03"/>
+      </geometry>
+      <material name="black">
+         <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+   </visual>
+   <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.09 0.03 0.03"/>
+      </geometry>
+   </collision>
+   </link>
+
+   <link name="zivid_cable_box2">
+   <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.09 0.03 0.03"/>
+      </geometry>
+      <material name="black">
+         <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+   </visual>
+   <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+         <box size="0.09 0.03 0.03"/>
+      </geometry>
+   </collision>
+   </link>
+
+   <joint name="zivid_cable_joint1" type="fixed">
+      <parent link="zivid_link"/>
+      <child link="zivid_cable_box1"/>
+      <origin xyz="-0.07 0.053 0.03" rpy="0 0 0"/>
+   </joint>
+
+   <joint name="zivid_cable_joint2" type="fixed">
+      <parent link="zivid_link"/>
+      <child link="zivid_cable_box2"/>
+      <origin xyz="-0.07 -0.053 0.03" rpy="0 0 0"/>
+   </joint>
+
+   <joint name="zivid_box_joint" type="fixed">
+      <parent link="zivid_link"/>
+      <child link="zivid_box"/>
+      <origin xyz="0.02 0 0.03" rpy="0 0 0"/>
+   </joint>
+
+   <xacro:include filename="$(find realsense2_description)/urdf/_materials.urdf.xacro" /-->
+
+</robot>

@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="use_sim" default="false" doc="Set to false to connect to real robot and camera"/>
+
+    <arg name="target" default="box_with_ball" doc="set wich object to scan, choose between these: strawberry, strawberry_nomovement, bunny, box_with_ball"/>
+    <arg name="use_robot" default="true" doc="Set to false to spawn a camera only"/>
+    <arg name="robot_type" default="ur10" doc="Set to 'yumi' or 'ur10' to spawn the robot"/>
+    <arg name="camera_type" default="l515" doc="Set to 'd435', 'l515' or 'zivid' to spawn the camera"/>
+    
+    <param name="use_sim_time" value="$(arg use_sim)"/>
+    <arg name="spawn_robot" default="$(arg use_robot)"/>
+    <param name="/viewpoint_planning/robot" type="bool" value="$(arg use_robot)"/>
+    
+    <!-- Joint state and robot state publisher calls for yumi -->
+    <group if="$(arg spawn_robot)">
+      <include file="$(find abb_control)/launch/arm_control_node.launch" />
+        <group if="$(eval arg('robot_type') == 'yumi')">
+            <node name="yumi_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+                <rosparam param="source_list">["/yumi/joint_states", "/yumi/gripper_states"]</rosparam>
+            </node>
+            <node name="yumi_robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+            <node name="grippers_remapper" pkg="yumi_hw" type="gazebo_grippers_remap.py" />
+
+            <!-- Spawn the Yumi robot -->
+            <rosparam file="$(find yumi_control)/config/traj_controllers.yaml" command="load" ns="/yumi"/>
+            <rosparam file="$(find yumi_control)/config/gripper_controllers.yaml" command="load" ns="/yumi"/>
+            <arg name="arm_controllers" default="joint_state_controller 
+                                                joint_traj_pos_controller_l
+                                                joint_traj_pos_controller_r"/>
+            <arg name="gripper_controllers" default="gripper_effort_pos_controller_r
+                                                    gripper_effort_pos_controller_l"/>
+            <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg arm_controllers)" ns="/yumi"/>
+            <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg gripper_controllers)" ns="/yumi"/>
+
+            <!-- Gazebo spawn-->    
+            <!-- yumi and realsense -->
+            <arg name="arms_hardware_interface" default="PositionJointInterface"/>
+            <arg name="grippers_hardware_interface" default="EffortJointInterface"/>
+            <param name="robot_description" command="$(find xacro)/xacro '$(find yumi_description)/urdf/yumi.urdf.xacro' arms_interface:=$(arg arms_hardware_interface) grippers_interface:=$(arg grippers_hardware_interface) yumi_setup:=default" />
+
+            <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model yumi -param robot_description -unpause" respawn="false" output="screen"/>
+            
+            <!-- Double Set initial joint positions, couse some times it fails -->
+            <node name="set_initial_joint_positions" pkg="mr-30" type="set_initial_joint_positions.py" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'"/>
+        </group>
+        <group if="$(eval arg('robot_type') == 'ur10')">
+            <group if="$(arg use_sim)">
+                <include file="$(find ur_gazebo)/launch/ur10_bringup.launch">
+                    <arg name="start_gazebo" value="false"/>
+                </include>
+                <node name="set_ur10_initial_positions" pkg="mr-30" type="set_ur10_initial_positions.py" output="screen" launch-prefix="bash -c 'sleep 10; $0 $@'"/>
+            </group>
+            <group unless="$(arg use_sim)">
+                <include file="$(find ur_robot_driver)/launch/ur10_bringup.launch">
+                    <arg name="robot_ip" value="192.168.0.100"/>
+                    <arg name="kinematics_config" value="$(find ur_calibration)/etc/ur10_example_calibration.yaml"/>
+                </include>
+            </group>
+        </group>
+    </group>
+
+    <!-- Start gazebo if sim is true -->
+    <group if="$(arg use_sim)">
+        <!-- Set up environment paths for both models-->
+        <env name="GAZEBO_MODEL_PATH" value="$(find yumi_description)/models:$(optenv GAZEBO_MODEL_PATH):$(find ur_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+        <env name="GAZEBO_RESOURCE_PATH" value="$(optenv GAZEBO_RESOURCE_PATH)"/>
+
+        <!-- Start Gazebo world -->
+        <include file="$(find gazebo_ros)/launch/empty_world.launch">
+            <arg name="gui" value="true" />
+            <arg name="paused" value="false"/>
+            <arg name="use_sim_time" value="$(arg use_sim)"/>
+        </include>
+
+        <!-- Spawn the bunny-->
+        <group if="$(eval arg('target') == 'bunny')">
+            <node name="spawn_bunny" pkg="gazebo_ros" type="spawn_model" 
+                args="-file $(find mr-30)/models/bunny.sdf -sdf -model bunny -x 0.9 -y 0 -z 0.2" 
+                output="screen"
+                launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+        </group>
+
+        <!-- Spawn the strawberry-->
+        <group if="$(eval arg('target') == 'strawberry')">
+            <node name="spawn_strawberry" pkg="gazebo_ros" type="spawn_model" 
+                args="-file $(find mr-30)/models/plant.sdf -sdf -model strawberry -x 0.9 -y 0 -z 0.2 -R 0 -P 0 -Y -1.507" 
+                output="screen"
+                launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+        </group>
+
+        <!-- Spawn the strawberry without movement-->
+        <group if="$(eval arg('target') == 'strawberry_nomovement')">
+            <node name="spawn_strawberry_nomovement" pkg="gazebo_ros" type="spawn_model" 
+                args="-file $(find mr-30)/models/plant.sdf -sdf -model strawberry -x 0.7 -y 0 -z 0.2 -R 0 -P 0 -Y -1.507" 
+                output="screen"
+                launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+        </group>
+
+        <!-- Spawn the box with ball-->
+        <group if="$(eval arg('target') == 'box_with_ball')">
+            <node name="spawn_box_with_ball" pkg="gazebo_ros" type="spawn_model" 
+                args="-file $(find mr-30)/models/box_with_ball.sdf -sdf -model box_with_ball -x 1.1 -y 0 -z 0" 
+                output="screen"
+                launch-prefix="bash -c 'sleep 15; $0 $@'"/>
+        </group>
+
+        <!-- Spawn camera if robot is not spawned -->
+        <group unless="$(arg spawn_robot)">
+            <param name="robot_description" command="$(find xacro)/xacro '$(find realsense2_description)/urdf/test_d435_camera.urdf.xacro'" />
+            <node name="spawn_camera" pkg="gazebo_ros" type="spawn_model" args="-urdf -model camera -param robot_description -unpause" respawn="false" output="screen"/>
+            <node name="camera_robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen" />
+        </group>
+    </group>
+
+    <!-- Start the camera node if sim is false -->
+    <group unless="$(arg use_sim)">
+        <group if="$(eval arg('camera_type') == 'd435')">
+            <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+                <!-- Set depth stream to 640x480 @ 30 FPS -->
+                <arg name="json_file_path"      value="$(find mr-30)/config/d435.json"/>
+                <arg name="depth_fps"           default="15" />
+                <arg name="color_width"         default="640" />
+                <arg name="color_height"        default="480" />
+                <arg name="color_fps"           default="15" />
+                <arg name="enable_pointcloud"   default="true"/>
+                <arg name="enable_color"        default="true"/>
+                <arg name="enable_depth"        default="true"/>
+                <arg name="enable_infra1"       default="true"/>
+                <arg name="enable_infra2"       default="true"/>
+                <arg name="align_depth"         default="true"/>
+                <arg name="ordered_pc"          default="true"/>
+            </include>
+        </group>
+
+        <group if="$(eval arg('camera_type') == 'l515')">
+            <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+                <arg name="json_file_path"      value="$(find mr-30)/config/l515.json"/>
+                <arg name="fisheye_width"       default="640"/>
+                <arg name="fisheye_height"      default="480"/>
+                <arg name="enable_fisheye"      default="true"/>
+                <arg name="depth_width"         default="640"/>
+                <arg name="depth_height"        default="480"/>
+                <arg name="enable_depth"        default="true"/>
+                <arg name="infra_width"         default="640"/>
+                <arg name="infra_height"        default="480"/>
+                <arg name="enable_infra1"       default="true"/>
+                <arg name="enable_infra2"       default="true"/>
+                <arg name="color_width"         default="640"/>
+                <arg name="color_height"        default="480"/>
+                <arg name="enable_color"        default="true"/>
+                <arg name="fisheye_fps"         default="30"/>
+                <arg name="depth_fps"           default="30"/>
+                <arg name="infra_fps"           default="30"/>
+                <arg name="color_fps"           default="30"/>
+                <arg name="gyro_fps"            default="400"/>
+                <arg name="accel_fps"           default="250"/>
+                <arg name="enable_gyro"         default="false"/>
+                <arg name="enable_accel"        default="false"/>
+                <arg name="ordered_pc"          default="true"/>
+                <arg name="enable_pointcloud"   default="true"/>
+                <arg name="enable_sync"         default="true"/>
+                <arg name="align_depth"         default="true"/>
+                <arg name="filters"             default="temporal,spatial"/>
+            </include>
+        </group>
+
+        <group if="$(eval arg('camera_type') == 'zivid')">
+            <node name="zivid_camera" pkg="zivid_camera" type="zivid_camera_node" output="screen" ns="zivid_camera"/>
+        </group>
+    </group>
+
+    <!-- Use a node to publish the STL as a visualization marker -->
+    <node name="rviz_model" pkg="mr-30" type="rviz_model.py" output="screen">
+        <param name="target_model" value="$(arg target)"/>
+    </node>
+
+    <!-- Rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find yumi_description)/yumi_moveit.rviz"/>
+
+    <!-- Movit Config--> <!-- From demo.launch in yumi_movit-->
+    <group if="$(arg spawn_robot)">
+        <group if="$(eval arg('robot_type') == 'yumi')">
+            <include file="$(find yumi_moveit_config)/launch/move_group.launch">
+                <arg name="allow_trajectory_execution" value="true"/>
+                <arg name="fake_execution" value="false"/>
+                <arg name="info" value="true"/>
+                <arg name="pipeline" value="ompl"/>
+            </include>
+        </group>
+        <group if="$(eval arg('robot_type') == 'ur10')">
+            <include file="$(find ur10_moveit_config)/launch/moveit_planning_execution.launch">
+                <arg name="sim" value="$(arg use_sim)"/>
+            </include>
+        </group>
+    </group>
+
+</launch>

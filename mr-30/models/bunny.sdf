@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="bunny">
+    <static>true</static>
+    <link name="body">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/ok/mr30_ws/src/mr-30/models/bunny.dae</uri>
+            <scale>1.2 1.2 1.2</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/ok/mr30_ws/src/mr-30/models/bunny.dae</uri>
+            <scale>1.2 1.2 1.2</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
