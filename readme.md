@@ -83,12 +83,10 @@ https://apt.kitware.com/
 
 ### ROS packages
 
-ros-noetic-full-desktop
-ros-noetic-moveit*
-ros-noetic-rospy-message-converter
-
-Note: may be missing some packages
-
+This installs all ros packages needed. Some packages may be missing.
+```bash
+rosdep install --from-paths src --ignore-src -r -y
+```
 ### GTSAM
 
 #### Eigen from git on ubuntu 20.04
@@ -144,22 +142,6 @@ sudo make install
 
 Remember to modify in file /usr/local/lib/cmake/iridescence/iridescence-targets.cmake
 add_library(Iridescence::iridescence SHARED IMPORTED) -> add_library(Iridescence::iridescence SHARED IMPORTED GLOBAL)
-
-## Moveit
-
-To launch moveit with everything:
-```bash
-roslaunch mr-30 moveit.launch
-```
-
-If the urdf is updater or change the way the robot is controlled, the moveit package must be updated. To do this, run the following command:
-```bash
-cd yumi_ws/src/yumi_ros/yumi_description/urdf/
-```
-```bash
-rosrun xacro xacro yumi.urdf.xacro arms_interface:=PositionJointInterface grippers_interface:=EffortJointInterface yumi_setup:=default -o yumi.urdf
-```
-Then source the workspace and run again
 
 ## Git repositorys used
 
